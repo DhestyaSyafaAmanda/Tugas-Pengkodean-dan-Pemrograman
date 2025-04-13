@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Aplikasi Persediaan - Sidebar Olive</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 220px;
+      background-color: #6b8e23;
+      min-height: 100vh;
+      color: white;
+      padding-top: 20px;
+      position: fixed;
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .sidebar button {
+      display: block;
+      background: none;
+      border: none;
+      color: white;
+      text-align: left;
+      padding: 15px 20px;
+      width: 100%;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .sidebar button:hover {
+      background-color: #4e691c;
+    }
+
+    /* MAIN CONTENT */
+    .main {
+      margin-left: 220px;
+      padding: 30px;
+      flex: 1;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .active {
+      display: block;
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #4e691c;
+    }
+
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+    }
+
+    button.add {
+      background-color: #6b8e23;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-remove {
+      background-color: #cc3333;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+
+    th {
+      background-color: #d2e0b3;
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>Inventaris</h2>
+  <button onclick="showSection('dashboard')">🏠 Dashboard</button>
+  <button onclick="showSection('inventory')">📦 Data Barang</button>
+  <button onclick="showSection('addItem')">➕ Tambah Barang</button>
+  <button onclick="showSection('report')">📊 Laporan</button>
+</div>
+
+<div class="main">
+  <div id="dashboard" class="section active">
+    <h1>Dashboard</h1>
+    <p>Selamat datang di aplikasi persediaan barang. Pilih menu di samping untuk mulai.</p>
+  </div>
+
+  <div id="inventory" class="section">
+    <h1>Data Barang</h1>
+    <table id="inventoryTable">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Nama Barang</th>
+          <th>Stok</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div id="addItem" class="section">
+    <h1>Tambah Barang</h1>
+    <input type="text" id="itemName" placeholder="Nama Barang">
+    <input type="number" id="itemQty" placeholder="Jumlah Stok">
+    <button class="add" onclick="addItem()">Tambah</button>
+  </div>
+
+  <div id="report" class="section">
+    <h1>Laporan Stok</h1>
+    <p>Total jenis barang: <span id="totalItem">0</span></p>
+    <p>Total stok tersedia: <span id="totalQty">0</span></p>
+  </div>
+</div>
+
+<script>
+  let inventory = [];
+
+  function showSection(id) {
+    document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (id === 'report') updateReport();
+  }
+
+  function addItem() {
+    const name = document.getElementById('itemName').value.trim();
+    const qty = parseInt(document.getElementById('itemQty').value);
+
+    if (name && !isNaN(qty) && qty >= 0) {
+      inventory.push({ name, qty });
+      document.getElementById('itemName').value = '';
+      document.getElementById('itemQty').value = '';
+      renderTable();
+      showSection('inventory');
+    } else {
+      alert('Isi data dengan benar!');
+    }
+  }
+
+  function removeItem(index) {
+    if (confirm('Yakin ingin menghapus barang ini?')) {
+      inventory.splice(index, 1);
+      renderTable();
+    }
+  }
+
+  function renderTable() {
+    const tbody = document.querySelector('#inventoryTable tbody');
+    tbody.innerHTML = '';
+    inventory.forEach((item, index) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td contenteditable onblur="editItem(${index}, 'name', this.innerText)">${item.name}</td>
+        <td contenteditable onblur="editItem(${index}, 'qty', this.innerText)">${item.qty}</td>
+        <td><button class="btn-remove" onclick="removeItem(${index})">Hapus</button></td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function editItem(index, key, value) {
+    if (key === 'qty') {
+      const val = parseInt(value);
+      if (!isNaN(val)) {
+        inventory[index][key] = val;
+      } else {
+        alert('Stok harus angka');
+        renderTable();
+      }
+    } else {
+      inventory[index][key] = value;
+    }
+  }
+
+  function updateReport() {
+    const totalItem = inventory.length;
+    const totalQty = inventory.reduce((sum, item) => sum + item.qty, 0);
+    document.getElementById('totalItem').innerText = totalItem;
+    document.getElementById('totalQty').innerText = totalQty;
+  }
+
+  renderTable();
+</script>
+
+</body>
+</html>
